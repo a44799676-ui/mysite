@@ -70,6 +70,19 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #ro{padding:8px 14px;border-radius:999px;border:1px solid #ffb38a;background:rgba(10,4,14,.85);color:var(--ink);font:400 15px 'Cormorant Garamond',Georgia,serif;letter-spacing:.06em;cursor:pointer}
 #rbox{display:none;width:min(280px,calc(100vw - 32px));box-sizing:border-box;padding:12px;border-radius:16px;background:rgba(10,4,14,.95);border:1px solid rgba(255,179,138,.4);text-align:left}
 #rp.open #rbox{display:block}
+#fh{display:block;margin-top:6px;font:400 14px 'Cormorant Garamond',Georgia,serif;letter-spacing:.25em;opacity:.8}
+#lanterns{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.lan{position:absolute;bottom:-110px;width:78px;height:92px;padding:0;border:0;background:none;cursor:pointer;pointer-events:auto;animation:rise 18s linear forwards;-webkit-tap-highlight-color:transparent}
+@keyframes rise{from{transform:translateY(0)}to{transform:translateY(calc(-100vh - 240px))}}
+.lb{display:flex;align-items:center;justify-content:center;width:100%;height:78px;border-radius:38% 38% 26% 26%/30% 30% 18% 18%;background:radial-gradient(circle at 50% 75%,#fff0c2,#ffb347 55%,#e8704a);box-shadow:0 0 26px 8px rgba(255,170,80,.45);animation:sway 4.5s ease-in-out infinite alternate,flick 2.2s ease-in-out infinite alternate}
+.lb i{font:600 13px 'Cormorant Garamond',Georgia,serif;font-style:normal;letter-spacing:.04em;color:#3a1204}
+.lan::after{content:"";position:absolute;left:50%;bottom:4px;width:26px;height:8px;margin-left:-13px;border-radius:3px;background:#5a2410}
+@keyframes sway{from{transform:translateX(-8px) rotate(-3deg)}to{transform:translateX(8px) rotate(3deg)}}
+@keyframes flick{from{filter:brightness(.95)}to{filter:brightness(1.12)}}
+#lmsg{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);z-index:4;width:min(300px,calc(100vw - 48px));box-sizing:border-box;padding:16px 20px;border-radius:16px;background:rgba(10,4,14,.85);border:1px solid rgba(255,179,138,.4);text-align:center;opacity:0;pointer-events:none;transition:opacity .6s}
+#lmsg.on{opacity:1}
+#lmsg b{display:block;font:400 34px/1.1 'Great Vibes',cursive;color:#ffd6e6}
+#lmsg span{display:block;margin-top:6px;font:400 19px/1.4 'Cormorant Garamond',Georgia,serif}
 </style>
 </head>
 <body>
@@ -81,8 +94,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <div id="q"><p id="qt">Do you like it?</p><div id="qb"><button id="yes">YES</button><button id="no">NO</button></div></div>
 <div id="ltr"><div id="lt"></div></div>
 <div id="rp"><button id="ro" type="button">✎ Tell me something</button><div id="rbox"><label for="rt">Want to tell me something? Write it here. It won’t reach me, it goes to the stars ♥</label><div id="rw"><input id="rt" type="text" autocomplete="off" placeholder="write, then press Enter"><button id="rs" aria-label="Send">↵</button></div></div></div>
-<div id="fin">Sent to the stars ♥</div>
-<div id="sky"><canvas id="moon" width="64" height="64"></canvas><div class="sc"><small>TASHKENT</small><b id="tk"></b></div><div class="sc"><small>CAIRO</small><b id="ck"></b></div><i>Different cities,<br>same moon.</i></div>
+<div id="fin">Sent to the stars ♥<span id="fh">TAP A LANTERN</span></div>
+<div id="lanterns"></div><div id="lmsg"></div>
+<div id="sky"><canvas id="moon" width="64" height="64"></canvas><div class="sc"><small>UZBEKISTAN</small><b id="tk"></b></div><div class="sc"><small>EGYPT</small><b id="ck"></b></div><i>Different countries,<br>same moon.</i></div>
 <button id="again">replay ↻</button>
 <script>
 var NAME="Rita";
@@ -112,6 +126,7 @@ function build(){
   // 2: name
   var fs=Math.min(W*0.4,230);
   T[2]=shuffle(textPts(NAME,fs+"px 'Great Vibes',cursive",cx,H*0.42,'#ffd6e6',2));
+  T[7]=shuffle(textPts('ريتا',Math.round(fs*1.05)+"px 'Amiri','Noto Naskh Arabic',serif",cx,H*0.42,'#ffd6e6',2));
   // 3-6: rose bud -> full bloom (camera lifts as it opens)
   var Q=Math.min(W*0.26,H*0.18),rc2=H*0.3,G=2,ey,by=0,S=Q*0.82;
   // layered petals: o = bloom 0..1, tl = camera tilt
@@ -168,21 +183,24 @@ function init(){
   if(W<50||H<50){setTimeout(init,300);return}
   cv.width=W*D;cv.height=H*D;ctx.setTransform(D,0,0,D,0,0);
   N=W<600?12000:18000;build();
-  stars=[];for(var i=0;i<130;i++)stars.push({x:rnd(0,W),y:rnd(0,H),s:rnd(0.4,1.6),p:rnd(0,6.28)});
+  stars=[];var SC=['#ffd9ea','#ffffff','#ffe9c4','#cfe3ff'],NS=W<600?300:480;for(var i=0;i<NS;i++)stars.push({x:rnd(0,W),y:rnd(0,H),s:Math.random()<0.08?rnd(1.9,2.8):rnd(0.4,1.5),p:rnd(0,6.28),sp:rnd(600,1500),c:SC[Math.random()*4|0]});
   var old=P;P=[];
   for(var i=0;i<N;i++){var o=old[i]||{x:rnd(0,W),y:rnd(0,H),vx:0,vy:0};P.push(o);}
   assign();
 }
 function assign(){
   var a=T[stage];if(!a)return;
-  for(var i=0;i<P.length;i++){var t=a[i%a.length];P[i].c=t.c;P[i].tx=t.x;P[i].ty=t.y;P[i].s=t.z||(stage>=3?rnd(1.0,1.6):rnd(0.5,1.0))}
+  for(var i=0;i<P.length;i++){var t=a[i%a.length];P[i].c=t.c;P[i].tx=t.x;P[i].ty=t.y;P[i].s=t.z||(stage>=3&&stage<7?rnd(1.0,1.6):rnd(0.5,1.0))}
 }
 function setStage(s){stage=s;t0=performance.now();if(T[s])assign();}
 function frame(now){
   ctx.clearRect(0,0,W,H);PX+=(tPX-PX)*0.08;PY+=(tPY-PY)*0.08;
-  for(var i=0;i<stars.length;i++){var s=stars[i];ctx.globalAlpha=0.35+0.4*Math.sin(now/900+s.p);ctx.fillStyle='#ffd9ea';ctx.fillRect(s.x+PX*0.3,s.y+PY*0.3,s.s,s.s)}
+  for(var i=0;i<stars.length;i++){var s=stars[i];var al=0.3+0.5*Math.sin(now/s.sp+s.p);ctx.globalAlpha=al<0.05?0.05:al;ctx.fillStyle=s.c;var sx=s.x+PX*0.3,sy=s.y+PY*0.3;ctx.fillRect(sx,sy,s.s,s.s);if(s.s>1.8){ctx.fillRect(sx-s.s*1.6,sy+s.s*0.4,s.s*4.2,s.s*0.25);ctx.fillRect(sx+s.s*0.4,sy-s.s*1.6,s.s*0.25,s.s*4.2)}}
   ctx.globalAlpha=1;
-  var cx=W/2,cy=H*0.4,tt=(now-t0)/1000,k=stage===1?0.012:(stage>=4?0.02:0.045);
+  if(Math.random()<0.004&&shoots.length<3)shoots.push({x:rnd(W*.3,W+40),y:rnd(-20,H*.4),vx:-rnd(7,11),vy:rnd(3,5.5),a:1});
+  for(var sh=shoots.length-1;sh>=0;sh--){var so=shoots[sh];so.x+=so.vx;so.y+=so.vy;so.a-=0.014;if(so.a<=0||so.x<-60||so.y>H+60){shoots.splice(sh,1);continue}ctx.globalAlpha=so.a;ctx.strokeStyle='#ffffff';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(so.x,so.y);ctx.lineTo(so.x-so.vx*7,so.y-so.vy*7);ctx.stroke();ctx.fillStyle='#fff';ctx.fillRect(so.x-1,so.y-1,2.2,2.2)}
+  ctx.globalAlpha=1;
+  var cx=W/2,cy=H*0.4,tt=(now-t0)/1000,k=stage===1?0.012:(stage>=4&&stage<7?0.02:0.045);
   for(var i=0;i<P.length;i++){
     var p=P[i],tx=p.tx,ty=p.ty;
     if(stage===1){
@@ -202,7 +220,7 @@ function frame(now){
   ctx.globalAlpha=1;
   for(var hj=hearts.length-1;hj>=0;hj--){var hq=hearts[hj];hq.vy+=0.22;hq.x+=hq.vx;hq.y+=hq.vy;hq.vx*=0.99;hq.a-=0.008;if(hq.a<=0){hearts.splice(hj,1);continue}ctx.globalAlpha=hq.a;ctx.fillStyle='hsl('+hq.h+',90%,65%)';ctx.font=hq.s+'px serif';ctx.textAlign='center';ctx.fillText('♥',hq.x,hq.y)}
   ctx.globalAlpha=1;
-  if(stage>=6&&petals.length<26&&Math.random()<0.05)petals.push({x:cx+rnd(-1,1)*Math.min(W*0.46,280),y:rnd(-30,H*0.15),s:rnd(6,11),vy:rnd(0.35,0.9),ph:rnd(0,6.28),sw:rnd(0.3,1),rot:rnd(0,6.28),vr:rnd(-0.02,0.02),h:rnd(335,352),l:rnd(68,86)});
+  if(stage===6&&petals.length<26&&Math.random()<0.05)petals.push({x:cx+rnd(-1,1)*Math.min(W*0.46,280),y:rnd(-30,H*0.15),s:rnd(6,11),vy:rnd(0.35,0.9),ph:rnd(0,6.28),sw:rnd(0.3,1),rot:rnd(0,6.28),vr:rnd(-0.02,0.02),h:rnd(335,352),l:rnd(68,86)});
   for(var j=petals.length-1;j>=0;j--){
     var q=petals[j],s=q.s;q.y+=q.vy;q.ph+=0.02;q.x+=Math.sin(q.ph)*q.sw;q.rot+=q.vr;
     if(q.y>H+20){petals.splice(j,1);continue}
@@ -225,7 +243,7 @@ function yes(){if(Date.now()-noT<700)return;try{if(navigator.vibrate)navigator.v
   for(var i=0;i<140;i++)hearts.push({x:W/2,y:H*0.82,vx:rnd(-7,7),vy:rnd(-15,-4),s:rnd(10,26),h:rnd(335,355),a:1});
   for(var j=0;j<40;j++)petals.push({x:rnd(0,W),y:rnd(-H*0.5,-10),s:rnd(6,11),vy:rnd(0.6,1.4),ph:rnd(0,6.28),sw:rnd(0.3,1),rot:rnd(0,6.28),vr:rnd(-0.02,0.02),h:rnd(335,352),l:rnd(68,86)});
 }
-var letT,letTok=0,sparks=[],rockets=[],rkT=[],finT;
+var letT,letTok=0,sparks=[],rockets=[],rkT=[],finT,lanT,lanS,lanI=0,msgT,shoots=[];
 var LETTER=[{t:'Dear '+NAME+',',c:'h'},
 {t:'I made this little rose for you. Not because of a special day, just because you’re someone who deserves something beautiful.'},
 {t:'You’ve become one of my favorite people. Talking to you makes my days lighter, and I’m really glad you’re in my life.'},
@@ -268,6 +286,28 @@ function addSky(){
   tick();drawMoon(document.getElementById('moon'));clearInterval(skyT);skyT=setInterval(tick,1000);
   s.classList.add('on');
 }
+var LAN=[['kind','You make hard days feel lighter.'],['funny','Your laugh is my favorite sound.'],['brave','You are stronger than you think.'],['calm','Around you, everything feels softer.'],['beautiful','Inside and out. Never doubt it.'],['special','There is no one else quite like you.']];
+function popLantern(b,d){
+  var r=b.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  for(var i=0;i<45;i++){var an=Math.random()*6.283,sp=rnd(0.5,3.5);sparks.push({x:cx,y:cy,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp-1,a:1,d:rnd(.01,.02),s:rnd(1.4,2.8),h:rnd(28,48),l:rnd(65,88)})}
+  b.remove();
+  var m=document.getElementById('lmsg');m.innerHTML='<b>'+d[0]+'</b><span>'+d[1]+'</span>';m.classList.add('on');
+  clearTimeout(msgT);msgT=setTimeout(function(){m.classList.remove('on')},5000);
+}
+function startLanterns(){
+  var box=document.getElementById('lanterns');
+  function spawn(){
+    var d=LAN[lanI%LAN.length];lanI++;
+    var b=document.createElement('button');b.className='lan';b.type='button';
+    b.style.left=rnd(8,Math.max(20,W-86))+'px';b.style.animationDuration=rnd(15,20)+'s';
+    b.innerHTML='<span class="lb"><i>'+d[0]+'</i></span>';
+    b.addEventListener('click',function(){popLantern(b,d)});
+    b.addEventListener('animationend',function(e){if(e.target===b)b.remove()});
+    box.appendChild(b);
+  }
+  spawn();
+  lanT=setInterval(function(){if(box.children.length<7)spawn()},2600);
+}
 function sendStars(){
   var rt=document.getElementById('rt'),ov=document.getElementById('ltr');
   if(!rt.value.trim())return;
@@ -281,10 +321,10 @@ function sendStars(){
     for(var i=0;i<n;i++)sparks.push({x:r.left+Math.random()*r.width,y:Math.max(0,Math.min(H,r.top+Math.random()*r.height)),vx:rnd(-1.2,1.2),vy:rnd(-7,-2.5),a:1,d:rnd(.006,.014),s:rnd(1.2,2.8),h:Math.random()<.5?rnd(335,352):rnd(30,48),l:rnd(65,88)});
   });
   for(var k=0;k<7;k++)rkT.push(setTimeout(function(){rockets.push({x:rnd(W*.15,W*.85),y:H+10,vy:-rnd(9,12),ty:rnd(H*.1,H*.4)})},300+k*350));
-  finT=setTimeout(function(){document.getElementById('fin').classList.add('on');document.getElementById('end').style.opacity=1},3400);
+  finT=setTimeout(function(){document.getElementById('fin').classList.add('on');document.getElementById('end').style.opacity=1},3400);lanS=setTimeout(startLanterns,4200);
 }
 function resetQ(){
-  clearTimeout(qT);clearTimeout(letT);letTok++;document.getElementById('ltr').classList.remove('on');hearts.length=0;clearInterval(skyT);document.getElementById('sky').classList.remove('on');clearTimeout(finT);rkT.forEach(clearTimeout);rkT=[];sparks.length=0;rockets.length=0;document.getElementById('rp').classList.remove('on','open');document.getElementById('rt').value='';document.getElementById('fin').classList.remove('on');document.getElementById('ltr').style.transition='';noN=0;noT=0;document.getElementById('no').textContent='NO';document.getElementById('yes').style.transform='';
+  clearTimeout(qT);clearTimeout(letT);letTok++;document.getElementById('ltr').classList.remove('on');hearts.length=0;clearInterval(skyT);document.getElementById('sky').classList.remove('on');clearInterval(lanT);clearTimeout(lanS);clearTimeout(msgT);document.getElementById('lanterns').innerHTML='';document.getElementById('lmsg').classList.remove('on');lanI=0;clearTimeout(finT);rkT.forEach(clearTimeout);rkT=[];sparks.length=0;rockets.length=0;document.getElementById('rp').classList.remove('on','open');document.getElementById('rt').value='';document.getElementById('fin').classList.remove('on');document.getElementById('ltr').style.transition='';noN=0;noT=0;document.getElementById('no').textContent='NO';document.getElementById('yes').style.transform='';
   document.getElementById('q').classList.remove('on');
   var n=document.getElementById('no');n.classList.remove('run');n.style.left=n.style.top='';
   document.getElementById('qb').style.display='flex';document.getElementById('qt').textContent='Do you like it?';
@@ -294,9 +334,9 @@ function start(){
   var b=document.getElementById('btn');b.style.opacity=0;b.style.pointerEvents='none';
   setStage(1);
   setTimeout(function(){setStage(2)},2300);
-  setTimeout(function(){setStage(3)},5600);setTimeout(function(){setStage(4)},7800);setTimeout(function(){setStage(5)},10000);setTimeout(function(){setStage(6)},12200);
-  setTimeout(function(){document.getElementById('end').style.opacity=1;document.getElementById('again').style.opacity=.8},14000);
-  qT=setTimeout(function(){document.getElementById('q').classList.add('on')},15500);
+  setTimeout(function(){setStage(7)},4300);setTimeout(function(){setStage(3)},6400);setTimeout(function(){setStage(4)},8600);setTimeout(function(){setStage(5)},10800);setTimeout(function(){setStage(6)},13000);
+  setTimeout(function(){document.getElementById('end').style.opacity=1;document.getElementById('again').style.opacity=.8},14800);
+  qT=setTimeout(function(){document.getElementById('q').classList.add('on')},16300);
 }
 function again(){resetQ();
   document.getElementById('end').style.opacity=0;document.getElementById('again').style.opacity=0;
@@ -329,7 +369,7 @@ addEventListener('pointercancel',function(){mouse.x=mouse.y=-999});
 var rz;addEventListener('resize',function(){clearTimeout(rz);rz=setTimeout(init,200)});
 function go(){init();stage=0;assign();t0=performance.now();requestAnimationFrame(frame)}
 var ready=false;function once(){if(!ready){ready=true;go()}}
-if(document.fonts&&document.fonts.load){Promise.all([document.fonts.load("100px 'Great Vibes'"),document.fonts.load("16px 'Cormorant Garamond'")]).then(once,once);setTimeout(once,2500)}else once();
+if(document.fonts&&document.fonts.load){Promise.all([document.fonts.load("100px 'Great Vibes'"),document.fonts.load("100px 'Amiri'",'ريتا'),document.fonts.load("16px 'Cormorant Garamond'")]).then(once,once);setTimeout(once,2500)}else once();
 </script>
 </body>
 </html>
